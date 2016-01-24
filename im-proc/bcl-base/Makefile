@@ -10,7 +10,8 @@ BIN=print-ppm\
 	extract-channel\
 	gray2color\
 	color2mean\
-	normalize
+	normalize\
+	move
 
 
 all: $(BIN)
@@ -60,10 +61,17 @@ color2mean: color2mean.o
 
 color2mean.o: color2mean.c
 
+
 normalize: normalize.o
 	$(CC) normalize.o $(LDFLAGS) -o normalize
 
 normalize.o: normalize.c
+
+
+move: move.o
+	$(CC) move.o $(LDFLAGS) -o move
+
+move.o: move.c
 
 
 clean:

@@ -14,8 +14,8 @@ process(char* ims0_name, char* ims1_name,char* ims2_name,char* imd_name){
   pnm ims1 = pnm_load(ims1_name);
   pnm ims2 = pnm_load(ims2_name);
   
-  int rows = pnm_get_width(ims0);
-  int cols = pnm_get_height(ims0);
+  int cols = pnm_get_width(ims0);
+  int rows = pnm_get_height(ims0);
   
   pnm imd = pnm_new(cols, rows, PnmRawPpm);
 
