@@ -130,13 +130,5 @@ int main(int argc, char* argv[]){
   char *imd_name = argv[4];
   process(dir,angle,ims_name,imd_name);
 
-  /* 
-     just for the test, complety useless for the shear program 
-  */
-  /*for(int channel=0; channel<3; channel++){
-    unsigned short v = bilinear_interpolation(0.0, 0.0, NULL, channel);
-    (void)v;
-  }*/
-
   return EXIT_SUCCESS;
 }

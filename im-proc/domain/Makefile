@@ -6,27 +6,27 @@ LDFLAGS = -L$(ROOT)/lib -lbcl -lm
 
 PEPPER=../data/pepper.ppm
 
-OBJ=move.o\
-	shear.o\
-	domain.o\
-	flip.o\
+OBJ= domain.o\
+	move.o\
 	scroll.o\
+	flip.o\
+	shear.o\
 	rotate.o\
 	wave.o
 
-SRC=move.c\
-	shear.c\
-	domain.h\
+SRC= domain.h\
 	domain.c\
-	flip.c\
+	move.c\
 	scroll.c\
+	flip.c\
+	shear.c\
 	rotate.c\
 	wave.c
 
 BIN=move\
-	shear\
-	flip\
 	scroll\
+	flip\
+	shear\
 	rotate\
 	wave
 
@@ -34,15 +34,15 @@ all: $(BIN)
 
 move: move.o move.o
 	$(CC) move.o $(LDFLAGS) -o $@
-
-shear: shear.o domain.o
-	$(CC) shear.o domain.o $(LDFLAGS) -o $@
-
-flip: flip.o
-	$(CC) flip.o $(LDFLAGS) -o $@
-
+	
 scroll: scroll.o
 	$(CC) scroll.o $(LDFLAGS) -o $@
+	
+flip: flip.o
+	$(CC) flip.o $(LDFLAGS) -o $@
+	
+shear: shear.o domain.o
+	$(CC) shear.o domain.o $(LDFLAGS) -o $@
 
 rotate: rotate.o domain.o
 	$(CC) rotate.o domain.o $(LDFLAGS) -o $@
