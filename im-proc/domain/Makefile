@@ -2,21 +2,33 @@ ROOT=../bcl
 
 CC = gcc
 CFLAGS  = -Wall -Wextra -std=c99 -I$(ROOT)/include 
-LDFLAGS = -L$(ROOT)/lib -lbcl
+LDFLAGS = -L$(ROOT)/lib -lbcl -lm
 
 PEPPER=../data/pepper.ppm
 
 OBJ=move.o\
 	shear.o\
-	domain.o
+	domain.o\
+	flip.o\
+	scroll.o\
+	rotate.o\
+	wave.o
 
 SRC=move.c\
 	shear.c\
 	domain.h\
-	domain.c
+	domain.c\
+	flip.c\
+	scroll.c\
+	rotate.c\
+	wave.c
 
 BIN=move\
-	shear
+	shear\
+	flip\
+	scroll\
+	rotate\
+	wave
 
 all: $(BIN)
 
@@ -26,9 +38,25 @@ move: move.o move.o
 shear: shear.o domain.o
 	$(CC) shear.o domain.o $(LDFLAGS) -o $@
 
+flip: flip.o
+	$(CC) flip.o $(LDFLAGS) -o $@
+
+scroll: scroll.o
+	$(CC) scroll.o $(LDFLAGS) -o $@
+
+rotate: rotate.o domain.o
+	$(CC) rotate.o domain.o $(LDFLAGS) -o $@
+
+wave: wave.o domain.o
+	$(CC) wave.o domain.o $(LDFLAGS) -o $@
+
 move.o: move.c 
 shear.o: shear.c domain.h domain.o
 domain.o: domain.h domain.c
+flip.o: flip.c
+scroll.o: scroll.c
+rotate.o: rotate.c domain.h domain.o
+wave.o: wave.c domain.h domain.o
 
 test: test-move test-shear
 

@@ -5,34 +5,40 @@
 
 #include "domain.h"
 
-#define M_PI acos(-1.0)
+#define PI acos(-1.0)
+
+void wave(float coord[], int x0, int y0, float tx,float ax,float ty,float ay) {
+  coord[0] = x0 + ax*sin(2*PI*y0/tx);
+  coord[1] = y0 + ay*sin(2*PI*x0/ty);
+}
 
 void  
-process(char dir,float angle, char* ims_name,char* imd_name){
-	
+process(float tx,float ax,float ty,float ay, char *ims_name, char *imd_name) {
+
   pnm ims = pnm_load(ims_name);
   
-  int cols = pnm_get_width(ims);
-  int rows = pnm_get_height(ims);
+  int width = pnm_get_width(ims);
+  int height = pnm_get_height(ims);
   
-  pnm imd = pnm_new(cols, rows, PnmRawPpm);
-  
-  for(i=0;i<rowsd-1;i++){
-	  
-	  for(j=0;j<colsd;j++){
-		  p_imd = imaged + pnm_offset(imd,i,j);
-		  i_ims = i;
-		  j_ims = j - (f1*rowss+f2*i)*tan(f2*rad);
-		  
-		  if(j_ims>=0 && j_ims<colss-1){
-			  for(k=0; k<3; k++){
-				  *p_imd=bilinear_interpolation(j_ims,i_ims,ims,k);
-				  p_imd++;
-			  }
-		  }
+  pnm imd = pnm_new(width, height, PnmRawPpm);
+
+  float coord[2];
+  unsigned short tmp;
+
+  for (int x=0; x<width; x++) {
+    for (int y=0; y<height; y++) {
+      wave(coord, x, y, tx, ax, ty, ay);
+      for (int c=0; c<3; c++) {
+        if (coord[0] >= 0 && coord[1] >=0 && coord[0] < width-1 && coord[1] < height-1) {
+          tmp = bilinear_interpolation(coord[0], coord[1], ims, c);
+          pnm_set_component(imd, y, x, c, tmp);
+        }
       }
-  }	
-	    
+    }
+  }
+
+
+
   pnm_save(imd, PnmRawPpm, imd_name);
   pnm_free(imd);
   pnm_free(ims);
