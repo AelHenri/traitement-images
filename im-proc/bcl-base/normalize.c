@@ -53,7 +53,7 @@ unsigned short normalize(unsigned int pixel, int max, int min, int maxi, int min
   tmp2 = tmp1*pixel;
   tmp3 = ((min*maxi)-(max*mini))/(maxi-mini);
   res = tmp2 + tmp3;
-	return res;
+  return res;
 }
 
 void  
@@ -72,8 +72,6 @@ process(int min, int max, char* ims_name,char* imd_name){
   int i,j;
   int maxi[3], mini[3];
 
-
-  //unsigned short *image = pnm_get_image(ims);
   maxi[0] = max_value(ps, rows, cols, 0);
   maxi[1] = max_value(ps, rows, cols, 1);
   maxi[2] = max_value(ps, rows, cols, 2);
@@ -81,14 +79,12 @@ process(int min, int max, char* ims_name,char* imd_name){
   mini[1] = min_value(ps, rows, cols, 1);
   mini[2] = min_value(ps, rows, cols, 2);
 
-  printf("maxi1: %d, maxi2: %d, maxi3: %d\n",maxi[0],maxi[1],maxi[2] );
-  printf("mini1: %d, mini2: %d, mini3: %d\n",mini[0],mini[1],mini[2] );
   for(i=0;i<rows;i++){
 	  for(j=0;j<cols;j++){
 		  for(int c=0; c<3; c++){
-        *pd = normalize(*ps, max, min, maxi[c], mini[c]);
-        pd++;
-        ps++;
+			  *pd = normalize(*ps, max, min, maxi[c], mini[c]);
+			  pd++;
+			  ps++;
       }
     }
   }
