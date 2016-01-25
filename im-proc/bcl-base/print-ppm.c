@@ -24,8 +24,7 @@ void
 usage (char *s)
 {
   fprintf(stderr,
-	  "Usage: %s <r={0,255}> <g={0,255}> <b={0,255}> <rows> <cols>\n"
-	  ,s);
+	  "Usage: %s <r={0,255}> <g={0,255}> <b={0,255}> <rows> <cols>\n",s);
   exit(EXIT_FAILURE);
 }
 

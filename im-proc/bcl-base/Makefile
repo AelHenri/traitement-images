@@ -11,20 +11,43 @@ BIN=print-ppm\
 	gray2color\
 	color2mean\
 	normalize\
-	move
-
 
 all: $(BIN)
 
-print-ppm: print-ppm.o
-	$(CC) print-ppm.o $(LDFLAGS) -o print-ppm
 
+test1.o: test1.c 
 test1: test1.o 
 	$(CC) test1.o $(LDFLAGS) -o test1
 
 print-ppm.o: print-ppm.c
+print-ppm: print-ppm.o
+	$(CC) print-ppm.o $(LDFLAGS) -o print-ppm
+	
+	
+extract-subimage: extract-subimage.o
+	$(CC) extract-subimage.o $(LDFLAGS) -o extract-subimage
+extract-subimage.o: extract-subimage.c
 
-test1.o: test1.c 
+
+extract-channel: extract-channel.o
+	$(CC) extract-channel.o $(LDFLAGS) -o extract-channel
+extract-channel.o: extract-channel.c
+
+
+gray2color: gray2color.o
+	$(CC) gray2color.o $(LDFLAGS) -o gray2color
+gray2color.o: gray2color.c
+
+
+color2mean: color2mean.o
+	$(CC) color2mean.o $(LDFLAGS) -o color2mean
+color2mean.o: color2mean.c
+
+
+normalize: normalize.o
+	$(CC) normalize.o $(LDFLAGS) -o normalize
+normalize.o: normalize.c
+
 
 test: test-ppm
 
@@ -35,45 +58,6 @@ test-ppm: all
 	killall pvisu
 	
 	
-extract-subimage: extract-subimage.o
-	$(CC) extract-subimage.o $(LDFLAGS) -o extract-subimage
-
-extract-subimage.o: extract-subimage.c
-
-
-
-extract-channel: extract-channel.o
-	$(CC) extract-channel.o $(LDFLAGS) -o extract-channel
-
-extract-channel.o: extract-channel.c
-
-
-
-gray2color: gray2color.o
-	$(CC) gray2color.o $(LDFLAGS) -o gray2color
-
-gray2color.o: gray2color.c
-
-
-
-color2mean: color2mean.o
-	$(CC) color2mean.o $(LDFLAGS) -o color2mean
-
-color2mean.o: color2mean.c
-
-
-normalize: normalize.o
-	$(CC) normalize.o $(LDFLAGS) -o normalize
-
-normalize.o: normalize.c
-
-
-move: move.o
-	$(CC) move.o $(LDFLAGS) -o move
-
-move.o: move.c
-
-
 clean:
 	rm -f *.o 
 
