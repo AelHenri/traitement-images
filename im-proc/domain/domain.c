@@ -2,18 +2,21 @@
 #include "domain.h"
 
 unsigned short
-bilinear_interpolation(float x, float y, pnm ims, int c)
-{
-  int i = floor(x);
-  int j = floor(y);
-  
-  float dx = x - j;
-  float dy = y - i;
+bilinear_interpolation(float x, float y, pnm ims, int c) {
 
-  unsigned short *q = pnm_get_image(ims);
+    unsigned short res;
+    int i = (int)y;
+    int j = (int)x;
+    float dx = x - j;
+    float dy = y - i;
 
-  short inter = (1-dx)*(1-dy)* q[c+pnm_offset(ims, i, j)] + dx*(1-dy)* q[c+pnm_offset(ims, i, j+1)] + (1-dx)*dy* q[c+pnm_offset(ims, i+1, j)] + dx*dy* q[c+pnm_offset(ims, i+1, j+1)];
+    unsigned short Iij = pnm_get_component(ims, i, j, c);
+    unsigned short Iij1 = pnm_get_component(ims, i, j+1, c);
+    unsigned short Ii1j = pnm_get_component(ims, i+1, j, c);
+    unsigned short Ii1j1 = pnm_get_component(ims, i+1, j+1, c);
 
-  return inter;
+    res = (1 - dx)*(1 - dy)*Iij + dx*(1 - dy)*Iij1 + (1 - dx)*dy*Ii1j + dx*dy*Ii1j1;
+
+    return res;
 }
 
