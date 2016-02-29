@@ -25,34 +25,19 @@
  	{4.4679, -3.5873, 0.1193},
  	{-1.2186, 2.3809, -0.1624},
  	{0.0497, -0.2439, 1.2045}
- }
+ };
 
+ static float LMS2LAB[D][D] = {
+ 	{0.5774, 0.5774, 0.5774},
+ 	{0.4082, 0.4082, -0.8165},
+ 	{0.7071, -0.4082, 0.0}
+ };
 
- void matricialProductD1(float A[][], float B[], float res[]) {
- 	float tmp[3];
- 	for (int i = 0; i < D; ++i)
- 	{
- 		res[i] = 0;
- 		for (int j = 0; j < D; ++j)
- 		{
- 			res[i] += A[i][j]*B[j];
- 		}
- 	}
-
- }
-
- void matricialProductDD(float A[][], float B[], float res[]) {
- 	float tmp[3];
- 	for (int i = 0; i < D; ++i)
- 	{
- 		for (int j = 0; j < D; ++j)
- 		{
- 			res[i] = 0;
-
- 			res[i] += A[i][j]*B[j];
- 		}
- 	}
- }
+ static float LAB2LMS[D][D] = {
+ 	{0.5774, 0.4082, 0.7071},
+ 	{0.5774, 0.4082, -0.7071},
+ 	{0.5774, 0.8165, 0.0}
+ };
 
 
  static void process(char *ims, char *imt, char* imd){
@@ -65,17 +50,19 @@
  	pnm pimd = pnm_new(cols, rows, PnmRawPpm);
 
  	float* LMSs = malloc(cols * rows * 3 * sizeof(float));
+ 	float* LABs = malloc(cols * rows * 3 * sizeof(float));
 
+ 	printf("LMS %p, LAB %p\n",LMSs, LABs );
  	for (int i = 0; i < rows; ++i)
  	{
  		for (int j = 0; j < cols; ++j)
  		{
  			for (int k = 0; k < 3; ++k)
  			{
- 				*LMS = 0;
+ 				*LMSs = 0.0;
  				for (int m = 0; m < 3; ++m)
  				{
- 					*LMSs += RGB2LMS[k][m] * (float)pnm_get_component(pims,s, i, j, m)
+ 					*LMSs += RGB2LMS[k][m] * (float)pnm_get_component(pims, i, j, m);
  				}
  				LMSs++;
  			}
@@ -83,27 +70,89 @@
  	}
 
  	float tmp;
+ 	LMSs -= cols * rows * 3;
+ 	printf("LMS %p, LAB %p\n",LMSs, LABs );
 
- 	LMS -= cols * rows * 3;
 
+ 	//LMStoLAB
  	for (int i = 0; i < rows; ++i)
  	{
  		for (int j = 0; j < cols; ++j)
  		{
  			for (int k = 0; k < 3; ++k)
  			{
+ 				tmp = 0.0;
+ 				for (int m = 0; m < 3; ++m)
+ 				{
+ 					tmp += LMS2LAB[k][m] * *LMSs;
+ 					LMSs++;	
+ 				}
+ 				LMSs -= 3;
+
+ 				*LABs = tmp;
+ 				LABs++;
+ 			}
+ 			LMSs += 3;
+ 		}
+ 	}
+
+ 	LABs -= cols * rows * 3;
+ 	LMSs -= cols * rows * 3;
+ 	printf("LMS %p, LAB %p\n",LMSs, LABs );
+
+ 	//LABtoLMS
+ 	for (int i = 0; i < rows; ++i)
+ 	{
+ 		for (int j = 0; j < cols; ++j)
+ 		{
+ 			for (int k = 0; k < 3; ++k)
+ 			{
+ 				tmp = 0.0;
+ 				for (int m = 0; m < 3; ++m)
+ 				{
+ 					tmp += LAB2LMS[k][m] * *LABs;
+ 					LABs++;	
+ 				}
+ 				LABs -= 3;
+
+ 				*LMSs = tmp;
+ 				LMSs++;
+ 			}
+ 			LABs += 3;
+ 		}
+ 	}
+
+ 	LMSs -= cols * rows * 3;
+ 	LABs -= cols * rows * 3;
+ 	printf("LMS %p, LAB %p\n",LMSs, LABs );
+
+ 	
+ 	for (int i = 0; i < rows; ++i)
+ 	{
+ 		for (int j = 0; j < cols; ++j)
+ 		{
+ 			for (int k = 0; k < 3; ++k)
+ 			{
+ 				tmp = 0.0;
  				for (int m = 0; m < 3; ++m)
  				{
  					tmp += LMS2RGB[k][m] * *LMSs;
  					LMSs++;	
  				}
  				LMSs -= 3;
+ 				if (tmp >= 255)
+ 					tmp = 255;
  				pnm_set_component(pimd, i, j, k, (short) tmp);
  			}
+ 			LMSs += 3;
  		}
  	}
 
- 	free(LMS);
+ 	LMSs -= cols * rows * 3;
+ 	printf("LMS %p, LAB %p\n",LMSs, LABs );
+
+ 	free(LMSs);
+ 	free(LABs);
 
  	pnm_save(pimd, PnmRawPpm, imd);
  	pnm_free(pimt);
