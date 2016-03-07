@@ -9,6 +9,8 @@
 #include <stdlib.h>
 #include <bcl.h>
 
+#define MAX(x,y)  (x)>(y)?(x):(y) 
+
 #define D 3
 
  static float RGB2LMS[D][D] = {
@@ -40,7 +42,7 @@ void RGB2LAB(pnm pims, float* LAB, int cols, int rows) {
 	float* LMS = malloc(cols * rows * 3 * sizeof(float));
 	float tmp;
 
- 	//printf("LMS %p, LAB %p\n",LMS, LAB );
+	// Conversion du format RGB au format log(LMS)
  	for (int i = 0; i < rows; ++i)
  	{
  		for (int j = 0; j < cols; ++j)
@@ -53,13 +55,11 @@ void RGB2LAB(pnm pims, float* LAB, int cols, int rows) {
  					*LMS += RGB2LMS[k][m] * (float)pnm_get_component(pims, i, j, m);
  				}
 
- 				if(*LMS > 0) {
- 					*LMS = log(*LMS); 					
+ 				// Conversion de LMS en log(LMS)
+ 				if(*LMS >= 1) {
+ 					*LMS = log10(*LMS); 					
  				}
- 				else if (*LMS < 0){
- 					*LMS = -log(*LMS);
- 				}
- 				else {
+ 				else if (*LMS < 1){
  					*LMS = 0;
  				}
 
@@ -69,9 +69,8 @@ void RGB2LAB(pnm pims, float* LAB, int cols, int rows) {
  	}
  	
  	LMS -= cols * rows * 3;
- 	//printf("LMS %p, LAB %p\n",LMS, LAB );
 
- 	//LMStoLAB
+ 	// Conversion de log(LMS) en lab
  	for (int i = 0; i < rows; ++i)
  	{
  		for (int j = 0; j < cols; ++j)
@@ -86,8 +85,6 @@ void RGB2LAB(pnm pims, float* LAB, int cols, int rows) {
  				}
  				LMS -= 3;
 
- 				//tmp = log(tmp);
-
  				*LAB = tmp;
  				LAB++;
  			}
@@ -97,7 +94,6 @@ void RGB2LAB(pnm pims, float* LAB, int cols, int rows) {
 
  	LAB -= cols * rows * 3;
  	LMS -= cols * rows * 3;
- 	//printf("LMS %p, LAB %p\n",LMS, LAB );
 
  	free(LMS);
 }
@@ -107,6 +103,7 @@ void LAB2RGB(pnm pimd, float* LAB, int cols, int rows) {
 	float* LMS = malloc(cols * rows * 3 * sizeof(float));
 	float tmp;
 
+	// Conversion du format LAB au format LMS
 	for (int i = 0; i < rows; ++i)
  	{
  		for (int j = 0; j < cols; ++j)
@@ -114,6 +111,7 @@ void LAB2RGB(pnm pimd, float* LAB, int cols, int rows) {
  			for (int k = 0; k < 3; ++k)
  			{
  				tmp = 0.0;
+
  				for (int m = 0; m < 3; ++m)
  				{
  					tmp += LAB2LMS[k][m] * *LAB;
@@ -121,8 +119,11 @@ void LAB2RGB(pnm pimd, float* LAB, int cols, int rows) {
  				}
  				LAB -= 3;
 
- 				tmp = exp(tmp);
+ 				// Conversion de log(LMS) en LMS
+ 				tmp = pow(10,tmp);
+ 				
  				*LMS = tmp;
+
  				LMS++;
  			}
  			LAB += 3;
@@ -131,9 +132,8 @@ void LAB2RGB(pnm pimd, float* LAB, int cols, int rows) {
 
  	LMS -= cols * rows * 3;
  	LAB -= cols * rows * 3;
- 	//printf("LMS %p, LAB %p\n",LMS, LAB );
 
- 	
+ 	// Conversion de LMS en RGB
  	for (int i = 0; i < rows; ++i)
  	{
  		for (int j = 0; j < cols; ++j)
@@ -163,24 +163,20 @@ void LAB2RGB(pnm pimd, float* LAB, int cols, int rows) {
  		}
  	}
 
- 	//printf("%d %d\n", test, rows*cols);
  	LMS -= cols * rows * 3;
- 	//printf("LMS %p, LAB %p\n",LMS, LAB );
 
  	free(LMS);
 }
 
 void mean(float *img, float means[], int cols, int rows) {
-	int k=0;
-	means[0]=0;
-	means[1]=0;
-	means[3]=0;
-	printf("mean :\n");
+	means[0] = 0;
+	means[1] = 0;
+	means[2] = 0;
 	for (int i = 0; i < rows; ++i)
  	{
  		for (int j = 0; j < cols; ++j)
  		{
- 			for (k = 0; k < 3; ++k)
+ 			for (int k = 0; k < 3; ++k)
  			{
  				means[k] += *img;
  				img++;
@@ -194,25 +190,21 @@ void mean(float *img, float means[], int cols, int rows) {
  	{
  		means[i] = means[i] / ((float)rows * (float)cols);
  	}
- 	for (int i = 0; i < 3; ++i)
- 	{
- 		printf("%f\n", means[i]);;
- 	}
 }
 
 void standardDeviation(float *img, float deviations[], int cols, int rows) {
 	float means[3];
 	mean(img, means, cols, rows);
-	printf("dev :\n");
 
-	/*for (int i = 0; i < 3; ++i)
+	/*printf("In deviation computing :\n");
+	for (int i = 0; i < 3; ++i)
  	{
  		printf("%f\n", means[i]);;
  	}*/
-	deviations[0]=0;
-	deviations[1]=0;
-	deviations[3]=0;
-	
+
+ 	deviations[0] = 0;
+ 	deviations[1] = 0;
+ 	deviations[2] = 0;
 	for (int i = 0; i < rows; ++i)
  	{
  		for (int j = 0; j < cols; ++j)
@@ -226,42 +218,83 @@ void standardDeviation(float *img, float deviations[], int cols, int rows) {
  	}
 
  	img -= cols * rows * 3;
- 	//printf("%f\n", deviations[0]);
  	for (int i = 0; i < 3; ++i)
  	{
- 		deviations[i] = sqrt(deviations[i]/(cols * rows));
+ 		deviations[i] = sqrt(deviations[i]/((float)cols * (float)rows));
  	}
 }
 
-void remapping(float* imgs, float* imgt){
-	
-	
-	
-	
+void luminanceRemapping(float *imgA, float *imgB, int colsA, int rowsA, int colsB, int rowsB) {
+
+	float meansA[3];
+	float deviationsA[3];
+	float meansB[3];
+	float deviationsB[3];
+
+	mean(imgA, meansA, colsA, rowsA);
+	mean(imgB, meansB, colsB, rowsB);
+	standardDeviation(imgA, deviationsA, colsA, rowsA);
+	standardDeviation(imgB, deviationsB, colsB, rowsB);
+
+	for (int i = 0; i < rowsA; ++i)
+	{
+		for (int j = 0; j < colsA; ++j)
+		{
+			*imgA = (deviationsB[0]/deviationsA[0]) * (*imgA - meansA[0]) + meansB[0];
+
+			imgA += 3;
+		}
+	}
+
+	imgA -= colsA * rowsA;
 }
 
-void createGrid(){
-	
-	
+int getPixel(int rows, int cols,int pix) {
+	while(rows%pix!=0 && cols%pix!=0){
+		pix++;
+	}
+	return pix;
 }
 
-void colorization(float *LABs, float *LABt, float *LABd, int cols, int rows) {
+int getJitteredSamplingN(int cols, int rows) {
+	
+	int pixelpersquare = (int)floor(sqrt(rows*cols/200));
+	printf("pixel approx : %d\n",pixelpersquare);
+	int pix = getPixel(rows,cols,pixelpersquare);
+	printf("pixel choisi : %d\n",pix);
+
+	int nl = rows/pix;
+	int nc = cols/pix;
+	int n = nl*nc;
+	
+	return n;
+}
+
+void colorization(float *LABs, float *LABt, float *LABd, int colst, int rowst, int colss, int rowss) {
 	float meanss[3];
 	float deviationss[3];
 	float meanst[3];
 	float deviationst[3];
-	int k=0;
-	
-	
-	for (int i = 0; i < rows; ++i)
- 	{
- 		for (int j = 0; j < cols; ++j)
- 		{
-			
- 			for (k = 0; k < 3; ++k)
- 			{
 
-				
+	// Calcul des moyennes et écarts-types des images source et target
+	mean(LABs, meanss, colss, rowss);
+	mean(LABt, meanst, colst, rowst);
+	standardDeviation(LABs, deviationss, colss, rowss);
+	standardDeviation(LABt, deviationst, colst, rowst);
+
+	// Luminance remapping de l'image source
+	luminanceRemapping(LABs, LABt, colss, rowss, colst, rowst);
+	int n = getJitteredSamplingN(colss, rowss);
+	printf("%d\n", n);
+
+	// Colorisation
+	float tmp = 0.0;
+	for (int i = 0; i < rowst; ++i)
+ 	{
+ 		for (int j = 0; j < colst; ++j)
+ 		{
+ 			for (int k = 0; k < 3; ++k)
+ 			{
  				LABs++;
  				LABt++;
  				LABd++;
@@ -269,37 +302,36 @@ void colorization(float *LABs, float *LABt, float *LABd, int cols, int rows) {
  		}
  	}
 
- 	LABs -= cols * rows * 3;
- 	LABt -= cols * rows * 3;
- 	LABd -= cols * rows * 3;
- 	
+ 	LABs -= colss * rowss * 3;
+ 	LABt -= colst * rowst * 3;
+ 	LABd -= colst * rowst * 3;
 }
 
- static void process(char *ims, char *imt, char* imd){
+static void process(char *ims, char *imt, char* imd){
  	pnm pims = pnm_load(ims);
  	pnm pimt = pnm_load(imt);
 
- 	int cols = pnm_get_width(pimt);
- 	int rows = pnm_get_height(pimt);
+ 	int colst = pnm_get_width(pimt);
+ 	int rowst = pnm_get_height(pimt);
 
- 	pnm pimd = pnm_new(cols, rows, PnmRawPpm);
+ 	int colss = pnm_get_width(pims);
+ 	int rowss = pnm_get_height(pims);
 
- 	float * LABs = malloc(cols * rows * 3 * sizeof(float));
- 	float * LABt = malloc(cols * rows * 3 * sizeof(float));
- 	float * LABd = malloc(cols * rows * 3 * sizeof(float));
+ 	pnm pimd = pnm_new(colst, rowst, PnmRawPpm);
 
- 	//printf("LABs %p, LABt %p\n",LABs, LABt);
+ 	float * LABs = malloc(colss * rowss * 3 * sizeof(float));
+ 	float * LABt = malloc(colst * rowst * 3 * sizeof(float));
+ 	float * LABd = malloc(colst * rowst * 3 * sizeof(float));
 
- 	RGB2LAB(pims, LABs, cols, rows);
- 	RGB2LAB(pimt, LABt, cols, rows);
- 	RGB2LAB(pimd, LABt, cols, rows);
+ 	// Conversion des images sources (pims) et target (pimt) en format lab (LABs et LABt)
+ 	RGB2LAB(pims, LABs, colss, rowss);
+ 	RGB2LAB(pimt, LABt, colst, rowst);
 
- 	//printf("LABs %p, LABt %p\n",LABs, LABt);
- 	colorization(LABs, LABt, LABd, cols, rows);
- 	//printf("LABs %p, LABt %p\n",LABs, LABt);
+ 	// Colorisation de l'image de destination LABd (en format lab)
+ 	colorization(LABs, LABt, LABd, colst, rowst, colss, rowss);
 
- 	LAB2RGB(pimd, LABd, cols, rows);
- 	//printf("LABs %p, LABt %p\n",LABs, LABt);
+ 	// Conversion de l'image de destination (LABd) en format RGB (pimd)
+ 	LAB2RGB(pimd, LABd, colst, rowst);
 
  	free(LABs);
  	free(LABt);
@@ -310,6 +342,7 @@ void colorization(float *LABs, float *LABt, float *LABd, int cols, int rows) {
  	pnm_free(pimd);
  	pnm_free(pims);
  }
+
 
  void usage (char *s){
  	fprintf(stderr, "Usage: %s <ims> <imt> <imd> \n", s);
