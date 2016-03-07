@@ -30,49 +30,50 @@
  static float LMS2LAB[D][D] = {
  	{0.5774, 0.5774, 0.5774},
  	{0.4082, 0.4082, -0.8165},
- 	{0.7071, -0.4082, 0.0}
+ 	{0.7071, -0.7071, 0.0}
  };
 
  static float LAB2LMS[D][D] = {
  	{0.5774, 0.4082, 0.7071},
  	{0.5774, 0.4082, -0.7071},
- 	{0.5774, 0.8165, 0.0}
+ 	{0.5774, -0.8165, 0.0}
  };
 
+void RGB2LAB(pnm pims, float* LAB, int cols, int rows) {
 
- static void process(char *ims, char *imt, char* imd){
- 	pnm pims = pnm_load(ims);
- 	pnm pimt = pnm_load(imt);
+	float* LMS = malloc(cols * rows * 3 * sizeof(float));
+	float tmp;
 
- 	int cols = pnm_get_width(pimt);
- 	int rows = pnm_get_height(pimt);
-
- 	pnm pimd = pnm_new(cols, rows, PnmRawPpm);
-
- 	float* LMSs = malloc(cols * rows * 3 * sizeof(float));
- 	float* LABs = malloc(cols * rows * 3 * sizeof(float));
-
- 	printf("LMS %p, LAB %p\n",LMSs, LABs );
+ 	//printf("LMS %p, LAB %p\n",LMS, LAB );
  	for (int i = 0; i < rows; ++i)
  	{
  		for (int j = 0; j < cols; ++j)
  		{
  			for (int k = 0; k < 3; ++k)
  			{
- 				*LMSs = 0.0;
+ 				*LMS = 0.0;
  				for (int m = 0; m < 3; ++m)
  				{
- 					*LMSs += RGB2LMS[k][m] * (float)pnm_get_component(pims, i, j, m);
+ 					*LMS += RGB2LMS[k][m] * (float)pnm_get_component(pims, i, j, m);
  				}
- 				LMSs++;
+
+ 				if(*LMS > 0) {
+ 					*LMS = log(*LMS); 					
+ 				}
+ 				else if (*LMS < 0){
+ 					*LMS = -log(*LMS);
+ 				}
+ 				else {
+ 					*LMS = 1;
+ 				}
+
+ 				LMS++;
  			}
  		}
  	}
-
- 	float tmp;
- 	LMSs -= cols * rows * 3;
- 	printf("LMS %p, LAB %p\n",LMSs, LABs );
-
+ 	
+ 	LMS -= cols * rows * 3;
+ 	//printf("LMS %p, LAB %p\n",LMS, LAB );
 
  	//LMStoLAB
  	for (int i = 0; i < rows; ++i)
@@ -84,24 +85,33 @@
  				tmp = 0.0;
  				for (int m = 0; m < 3; ++m)
  				{
- 					tmp += LMS2LAB[k][m] * *LMSs;
- 					LMSs++;	
+ 					tmp += LMS2LAB[k][m] * (*LMS);
+ 					LMS++;	
  				}
- 				LMSs -= 3;
+ 				LMS -= 3;
 
- 				*LABs = tmp;
- 				LABs++;
+ 				//tmp = log(tmp);
+
+ 				*LAB = tmp;
+ 				LAB++;
  			}
- 			LMSs += 3;
+ 			LMS += 3;
  		}
  	}
 
- 	LABs -= cols * rows * 3;
- 	LMSs -= cols * rows * 3;
- 	printf("LMS %p, LAB %p\n",LMSs, LABs );
+ 	LAB -= cols * rows * 3;
+ 	LMS -= cols * rows * 3;
+ 	//printf("LMS %p, LAB %p\n",LMS, LAB );
 
- 	//LABtoLMS
- 	for (int i = 0; i < rows; ++i)
+ 	free(LMS);
+}
+
+void LAB2RGB(pnm pimd, float* LAB, int cols, int rows) {
+
+	float* LMS = malloc(cols * rows * 3 * sizeof(float));
+	float tmp;
+
+	for (int i = 0; i < rows; ++i)
  	{
  		for (int j = 0; j < cols; ++j)
  		{
@@ -110,21 +120,22 @@
  				tmp = 0.0;
  				for (int m = 0; m < 3; ++m)
  				{
- 					tmp += LAB2LMS[k][m] * *LABs;
- 					LABs++;	
+ 					tmp += LAB2LMS[k][m] * *LAB;
+ 					LAB++;	
  				}
- 				LABs -= 3;
+ 				LAB -= 3;
 
- 				*LMSs = tmp;
- 				LMSs++;
+ 				tmp = exp(tmp);
+ 				*LMS = tmp;
+ 				LMS++;
  			}
- 			LABs += 3;
+ 			LAB += 3;
  		}
  	}
 
- 	LMSs -= cols * rows * 3;
- 	LABs -= cols * rows * 3;
- 	printf("LMS %p, LAB %p\n",LMSs, LABs );
+ 	LMS -= cols * rows * 3;
+ 	LAB -= cols * rows * 3;
+ 	//printf("LMS %p, LAB %p\n",LMS, LAB );
 
  	
  	for (int i = 0; i < rows; ++i)
@@ -136,23 +147,154 @@
  				tmp = 0.0;
  				for (int m = 0; m < 3; ++m)
  				{
- 					tmp += LMS2RGB[k][m] * *LMSs;
- 					LMSs++;	
+ 					tmp += LMS2RGB[k][m] * *LMS;
+ 					LMS++;	
  				}
- 				LMSs -= 3;
- 				if (tmp >= 255)
- 					tmp = 255;
+ 				LMS -= 3;
+ 				tmp = tmp;
+ 				if (tmp >= 255.0)
+ 				{
+ 					tmp = 255.0;
+ 				}
+ 				if (tmp <= 0.0)
+ 				{
+ 					tmp = 0.0;
+ 				}
+
  				pnm_set_component(pimd, i, j, k, (short) tmp);
  			}
- 			LMSs += 3;
+ 			LMS += 3;
  		}
  	}
 
- 	LMSs -= cols * rows * 3;
- 	printf("LMS %p, LAB %p\n",LMSs, LABs );
+ 	//printf("%d %d\n", test, rows*cols);
+ 	LMS -= cols * rows * 3;
+ 	//printf("LMS %p, LAB %p\n",LMS, LAB );
 
- 	free(LMSs);
+ 	free(LMS);
+}
+
+void mean(float *img, float means[], int cols, int rows) {
+	for (int i = 0; i < rows; ++i)
+ 	{
+ 		for (int j = 0; j < cols; ++j)
+ 		{
+ 			for (int k = 0; k < 3; ++k)
+ 			{
+ 				means[k] += *img;
+ 				img++;
+ 			}
+ 		}
+ 	}
+
+ 	img -= cols * rows * 3;
+
+ 	for (int i = 0; i < 3; ++i)
+ 	{
+ 		means[i] = means[i] / (rows * cols);
+ 	}
+ 	for (int i = 0; i < 3; ++i)
+ 	{
+ 		printf("%f\n", means[i]);;
+ 	}
+}
+
+void standardDeviation(float *img, float deviations[], int cols, int rows) {
+	float means[3];
+	mean(img, means, cols, rows);
+
+	/*for (int i = 0; i < 3; ++i)
+ 	{
+ 		printf("%f\n", means[i]);;
+ 	}*/
+
+	for (int i = 0; i < rows; ++i)
+ 	{
+ 		for (int j = 0; j < cols; ++j)
+ 		{
+ 			for (int k = 0; k < 3; ++k)
+ 			{
+ 				deviations[k] += (*img - means[k]) * (*img - means[k]);
+ 				img++;
+ 			}
+ 		}
+ 	}
+
+ 	img -= cols * rows * 3;
+ 	//printf("%f\n", deviations[0]);
+ 	for (int i = 0; i < 3; ++i)
+ 	{
+ 		deviations[i] = sqrt(deviations[i]/(cols * rows));
+ 	}
+}
+
+void colorTransfert(float *LABs, float *LABt, float *LABd, int cols, int rows) {
+	float meanss[3];
+	float deviationss[3];
+	float meanst[3];
+	float deviationst[3];
+
+	mean(LABs, meanss, cols, rows);
+	mean(LABt, meanst, cols, rows);
+	standardDeviation(LABs, deviationss, cols, rows);
+	standardDeviation(LABt, deviationst, cols, rows);
+
+	/*for (int i = 0; i < 3; ++i) {
+		printf("%f %f\n", meanss[i], deviationss[i]);
+	}*/
+
+ 	//printf("%f\n", *LABs);
+	for (int i = 0; i < rows; ++i)
+ 	{
+ 		for (int j = 0; j < cols; ++j)
+ 		{
+ 			for (int k = 0; k < 3; ++k)
+ 			{
+ 				*LABt = *LABt - meanst[k];
+ 				*LABt *= (deviationst[k]/deviationss[k]);
+
+ 				*LABd = *LABt + meanss[k];
+
+ 				LABs++;
+ 				LABt++;
+ 				LABd++;
+ 			}
+ 		}
+ 	}
+
+ 	LABs -= cols * rows * 3;
+ 	LABt -= cols * rows * 3;
+ 	LABd -= cols * rows * 3;
+}
+
+ static void process(char *ims, char *imt, char* imd){
+ 	pnm pims = pnm_load(ims);
+ 	pnm pimt = pnm_load(imt);
+
+ 	int cols = pnm_get_width(pimt);
+ 	int rows = pnm_get_height(pimt);
+
+ 	pnm pimd = pnm_new(cols, rows, PnmRawPpm);
+
+ 	float * LABs = malloc(cols * rows * 3 * sizeof(float));
+ 	float * LABt = malloc(cols * rows * 3 * sizeof(float));
+ 	float * LABd = malloc(cols * rows * 3 * sizeof(float));
+
+ 	//printf("LABs %p, LABt %p\n",LABs, LABt);
+
+ 	RGB2LAB(pims, LABs, cols, rows);
+ 	RGB2LAB(pimt, LABt, cols, rows);
+
+ 	//printf("LABs %p, LABt %p\n",LABs, LABt);
+ 	colorTransfert(LABs, LABt, LABd, cols, rows);
+ 	//printf("LABs %p, LABt %p\n",LABs, LABt);
+
+ 	LAB2RGB(pimd, LABd, cols, rows);
+ 	//printf("LABs %p, LABt %p\n",LABs, LABt);
+
  	free(LABs);
+ 	free(LABt);
+ 	free(LABd);
 
  	pnm_save(pimd, PnmRawPpm, imd);
  	pnm_free(pimt);
