@@ -46,8 +46,6 @@
     }
 
      pnm_save(imd, PnmRawPpm, name);
-
-     pnm_free(ims);
      fftw_free(fftw_for);
      fprintf(stderr, "OK\n");
    }
@@ -64,30 +62,37 @@
     fprintf(stderr, "test_reconstruction: ");
     int cols = pnm_get_width(ims);
     int rows = pnm_get_height(ims);
-
     pnm imd = pnm_new(cols, rows, PnmRawPpm);
-
     unsigned short *ps = pnm_get_image(ims);
     unsigned short *pd = pnm_get_image(imd);
-
     fftw_complex* fftw_for;
     fftw_for = forward(rows, cols, ps);
 
 
-    float* as = malloc(rows*cols*3*sizeof(float));
-    float* ps = malloc(rows*cols*3*sizeof(float));
+    float* freq_as = malloc(rows*cols*3*sizeof(float));
+    float* freq_ps = malloc(rows*cols*3*sizeof(float));
 
-    freq2spectra(rows,cols,fftw_for,as,ps);
+
+    freq2spectra(rows,cols,fftw_for,freq_as,freq_ps);
 
     fftw_complex* freq_repr = (fftw_complex*) fftw_malloc(rows*cols*sizeof(fftw_complex));
-    spectra2freq(rows,cols,as,ps,freq_repr);
+    spectra2freq(rows,cols,freq_as,freq_ps,freq_repr);
 
 
-
-
-    pnm_save(imd, PnmRawPpm, name);
-
-    pnm_free(ims);
+    unsigned short *out = backward(rows, cols, freq_repr);
+    for(int i=0;i<rows;i++){
+      for(int j=0;j<cols;j++){
+        for(int c=0; c<3; c++){
+          *pd = *out;
+          pd++;
+          out++;
+        }
+      }
+    }
+    char dest_name [20];
+    strcpy(dest_name,"FB-ASPS-");
+    strcat(dest_name,name);
+    pnm_save(imd, PnmRawPpm,dest_name);
     fftw_free(fftw_for);
     fprintf(stderr, "OK\n");
   }
