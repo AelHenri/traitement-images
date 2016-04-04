@@ -17,14 +17,33 @@
  * @param pnm ims, the source image
  * @param char* name, the image file name
  */
-static void
-test_for_backward(pnm ims, char* name)
-{
-  fprintf(stderr, "test_for_backward: ");
-  (void)ims;
-  (void)name;
-  fprintf(stderr, "OK\n");
-}
+ static void
+ test_for_backward(pnm ims, char* name)
+ {
+  /**
+   *fprintf(stderr, "test_for_backward: ");
+   *(void)ims;
+   *(void)name;
+   *fprintf(stderr, "OK\n");
+   */
+   int cols = pnm_get_width(ims);
+   int rows = pnm_get_height(ims);
+
+   pnm imd = pnm_new(cols, rows, PnmRawPpm);
+
+   unsigned short *ps = pnm_get_image(ims);
+   unsigned short *pd = pnm_get_image(imd);
+   fftw_complex *fftw_for;// = (fftw_complex *) fftw_malloc(cols*rows*sizeof(fftw_complex));
+   
+   fftw_for = forward(rows, cols, p);
+   pd = backward(rows, cols, fftw_back);
+
+   pnm_save(imd, PnmRawPpm, name);
+
+   pnm_free(ims);
+   fftw_free(fftw_for);
+   fftw_free(fftw_back);
+ }
 
 
 /**
@@ -32,9 +51,9 @@ test_for_backward(pnm ims, char* name)
  * @param pnm ims: the source image
  * @param char *name: the image file name
  */
-static void
-test_reconstruction(pnm ims, char* name)
-{
+ static void
+ test_reconstruction(pnm ims, char* name)
+ {
   fprintf(stderr, "test_reconstruction: ");
   (void)ims;
   (void)name;
@@ -47,9 +66,9 @@ test_reconstruction(pnm ims, char* name)
  * @param pnm ims, the source image
  * @param char* name, the image file name
  */
-static void
-test_display(pnm ims, char* name)
-{
+ static void
+ test_display(pnm ims, char* name)
+ {
   fprintf(stderr, "test_display: ");
   (void)ims;
   (void)name;
@@ -64,9 +83,9 @@ test_display(pnm ims, char* name)
  * @param pnm ims, the source image
  * @param char* name, the image file name
  */
-static void
-test_add_frequencies(pnm ims, char* name)
-{
+ static void
+ test_add_frequencies(pnm ims, char* name)
+ {
   fprintf(stderr, "test_add_frequencies: ");
   (void)ims;
   (void)name;
