@@ -20,12 +20,7 @@
  static void
  test_for_backward(pnm ims, char* name)
  {
-  /**
-   *fprintf(stderr, "test_for_backward: ");
-   *(void)ims;
-   *(void)name;
-   *fprintf(stderr, "OK\n");
-   */
+
    int cols = pnm_get_width(ims);
    int rows = pnm_get_height(ims);
 
@@ -33,14 +28,22 @@
 
    unsigned short *ps = pnm_get_image(ims);
    unsigned short *pd = pnm_get_image(imd);
-   fftw_complex *fftw_for;// = (fftw_complex *) fftw_malloc(cols*rows*sizeof(fftw_complex));
+
+   fftw_complex *fftw_for;
    
    fftw_for = forward(rows, cols, ps);
-   pd = backward(rows, cols, fftw_for);
+   unsigned short *out = backward(rows, cols, fftw_for);
 
-   printf("back passé\n");
+  for(int i=0;i<rows;i++){
+    for(int j=0;j<cols;j++){
+      for(int c=0; c<3; c++){
+        *pd = *out;
+        pd++;
+        out++;
+      }
+    }
+  }
    pnm_save(imd, PnmRawPpm, name);
-
    pnm_free(ims);
    fftw_free(fftw_for);
  }
