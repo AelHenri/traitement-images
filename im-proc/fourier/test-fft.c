@@ -35,14 +35,13 @@
    unsigned short *pd = pnm_get_image(imd);
    fftw_complex *fftw_for;// = (fftw_complex *) fftw_malloc(cols*rows*sizeof(fftw_complex));
    
-   fftw_for = forward(rows, cols, p);
-   pd = backward(rows, cols, fftw_back);
+   fftw_for = forward(rows, cols, ps);
+   pd = backward(rows, cols, fftw_for);
 
    pnm_save(imd, PnmRawPpm, name);
 
    pnm_free(ims);
    fftw_free(fftw_for);
-   fftw_free(fftw_back);
  }
 
 
