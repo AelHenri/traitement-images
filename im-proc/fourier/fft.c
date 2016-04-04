@@ -14,12 +14,17 @@
     {
       for (int j = 0; j < cols; ++j)
       {
-        *img_in = *g_img + I*0;
+        if ((i+j) % 2 == 0)
+          *img_in = *g_img + I*0;
+        else
+          *img_in = - (double) (*g_img) + I*0;
         g_img+=3;
         img_in++;
       }
     }
     img_in -= cols*rows;
+    g_img -= cols * rows * 3;
+
     fftw_plan p = fftw_plan_dft_2d(rows, cols, img_in, img_out, FFTW_FORWARD, FFTW_ESTIMATE);
 
     fftw_execute(p);
@@ -51,7 +56,22 @@
         (*fftw_back)*=(1./(rows*cols));
         for (int k = 0; k < 3; ++k)
         {
-         *img_out = (unsigned short) creal(*fftw_back);
+          if ((i+j) % 2 == 0){
+              if(creal(*fftw_back)>255)
+                *img_out = 255;
+              else if(creal(*fftw_back)<0)
+                *img_out = 0;
+              else
+                *img_out = (unsigned short) creal(*fftw_back);
+          }
+          else{
+              if(-creal(*fftw_back)>255)
+                *img_out = 255;
+              else if(-creal(*fftw_back)<0)
+                *img_out = 0;
+              else
+                *img_out = (unsigned short) -creal(*fftw_back);
+          }
          img_out++;
         }
         fftw_back++;
