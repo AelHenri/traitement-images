@@ -7,26 +7,36 @@
 fftw_complex
 *forward(int rows, int cols, unsigned short* g_img)
 {
-  fftw_complex* img_in = (fftw_complex*) fftw_malloc(rows*cols*sizeof(fftw_complex));
-  fftw_complex* img_out = (fftw_complex*) fftw_malloc(sizeof(img_in));
+  fftw_complex* img_in = (fftw_complex*) fftw_malloc(rows*cols*3*sizeof(fftw_complex));
+  fftw_complex* img_out = (fftw_complex*) fftw_malloc(rows*cols*3*sizeof(fftw_complex));
+
+  printf("taille : %d %d %d\n", rows,cols,rows*cols);
+  int k=0;
 
   for (int i = 0; i < rows; ++i)
   {
     for (int j = 0; j < cols; ++j)
     {
-      *img_in = *g_img + I*0;
-      g_img+=3;
-      img_in++;
+      for (int k = 0; k < 3; ++k)
+      {
+        k++;
+        *img_in = *g_img + I*0;
+        g_img++;
+        img_in++;
+        
+      }
     }
   }
+  
+  printf("k : %d\n", k);
 
   fftw_plan p = fftw_plan_dft_2d(rows, cols, img_in, img_out, FFTW_FORWARD, FFTW_ESTIMATE);
 
   fftw_execute(p);
 
 
-  fftw_destroy_plan(p);
-  fftw_free(img_in);
+  //fftw_destroy_plan(p);
+  //fftw_free(img_in);
 
   return img_out;
 }
@@ -37,8 +47,11 @@ unsigned short
 {
   unsigned short * img_out = malloc(rows*cols*sizeof(unsigned short)*3);
 
-  fftw_complex* fftw_back = (fftw_complex*) fftw_malloc(rows*cols*sizeof(fftw_complex));
+  fftw_complex* fftw_back = (fftw_complex*) fftw_malloc(rows*cols*3*sizeof(fftw_complex));
+
   fftw_plan p = fftw_plan_dft_2d(rows, cols, freq_repr, fftw_back, FFTW_BACKWARD, FFTW_ESTIMATE);
+  
+
   fftw_execute(p);
   fftw_destroy_plan(p);
 
@@ -47,18 +60,19 @@ unsigned short
   {
     for (int j = 0; j < cols; ++j)
     {
-      *fftw_back*=(1./(rows*cols));
-      for (int k = 0; j < 3; ++k)
-      {
-         *img_out = creal(*fftw_back);
-          img_out++;
-      }
-      fftw_back++;
-    }
-  }
 
-  fftw_free(fftw_back);
-  return img_out;
+      for (int k = 0; k < 3; ++k)
+      {
+        (*fftw_back)*=(1./(rows*cols*3));
+       *img_out = creal(*fftw_back);
+       img_out++;
+       fftw_back++;
+     }
+   }
+ }
+
+ //fftw_free(fftw_back);
+ return img_out;
 }
 
 void

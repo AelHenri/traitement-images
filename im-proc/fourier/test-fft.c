@@ -38,6 +38,7 @@
    fftw_for = forward(rows, cols, ps);
    pd = backward(rows, cols, fftw_for);
 
+   printf("back passé\n");
    pnm_save(imd, PnmRawPpm, name);
 
    pnm_free(ims);
@@ -111,10 +112,10 @@ usage (char *s)
 int 
 main(int argc, char *argv[])
 {
-  if (argc != 2)
+  if (argc != 3)
     usage(argv[0]);
   pnm ims = pnm_load(argv[1]);
-  run(ims, argv[1]);
+  run(ims, argv[2]);
 
   return EXIT_SUCCESS;
 }
