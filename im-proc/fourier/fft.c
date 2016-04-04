@@ -75,23 +75,44 @@ unsigned short
  return img_out;
 }
 
-void
-freq2spectra(int rows, int cols, fftw_complex* freq_repr, float* as, float* ps) 
+void freq2spectra(int rows, int cols, fftw_complex* freq_repr, float* as, float* ps) 
 {
-  (void)rows;
-  (void)cols;
-  (void)freq_repr;
-  (void)as;
-  (void)ps;
+  for (int i = 0; i < rows; ++i)
+  {
+    for (int j = 0; j < cols; ++j)
+    {
+
+      for (int k = 0; k < 3; ++k)
+      {
+        *as = sqrt( creal(*freq_repr)*creal(*freq_repr) + cimag(*freq_repr)*cimag(*freq_repr));
+        *ps = atan( cimag(*freq_repr) / creal(*freq_repr) );
+        as++;
+        ps++;
+      }
+      freq_repr++;
+    }
+  }
+  as -= 3*cols*rows;
+  ps -= 3*rows*cols;
+  freq_repr -= rows*cols;
 }
 
 
 void 
 spectra2freq(int rows, int cols, float* as, float* ps, fftw_complex* freq_repr)
 {
-  (void)rows;
-  (void)cols;
-  (void)freq_repr;
-  (void)as;
-  (void)ps;
+  for (int i = 0; i < rows; ++i)
+  {
+    for (int j = 0; j < cols; ++j)
+    {
+      *freq_repr = *as * cos(*ps) + I * *as * sin(*ps);
+      freq_repr++;
+      as+=3;
+      ps+=3;
+    }
+  }
+  as -= 3*cols*rows;
+  ps -= 3*rows*cols;
+  freq_repr-= cols*rows;
 }
+
