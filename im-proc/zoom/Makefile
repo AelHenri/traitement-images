@@ -4,9 +4,9 @@ CC=gcc
 CFLAGS= -Wall -Wextra -std=c99 -I$(ROOT)/include 
 LDFLAGS= -L$(ROOT)/lib -lbcl -lfftw3 -lm
 
-OBJ= fft.o test-fft.o copy.o padding.o
-SRC= fft.h fft.c test-fft.c copy.c padding.c
-BIN= test-fft copy padding
+OBJ= fft.o test-fft.o copy.o padding.o filter.o
+SRC= fft.h fft.c test-fft.c copy.c padding.c filter.c
+BIN= test-fft copy padding filter
 
 all: $(BIN)
 
@@ -24,6 +24,11 @@ padding: padding.o fft.o
 	$(CC) padding.o fft.o $(LDFLAGS) -o $@
 
 padding.o: padding.c
+
+filter: filter.o fft.o
+	$(CC) filter.o fft.o $(LDFLAGS) -o $@
+
+filter.o: filter.c
 
 test: all
 	@./test-fft ../data/lena-gray.ppm
