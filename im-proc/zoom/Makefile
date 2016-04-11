@@ -20,8 +20,8 @@ copy: copy.o
 
 copy.o: copy.c
  
-padding: padding.o
-	$(CC) padding.o $(LDFLAGS) -o $@
+padding: padding.o fft.o
+	$(CC) padding.o fft.o $(LDFLAGS) -o $@
 
 padding.o: padding.c
 
