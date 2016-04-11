@@ -67,7 +67,7 @@ process(int factor, char* filter_name,char* ims_name, char* imd_name){
       float WF = 0;
       if (strcmp(filter_name, "box")== 0) 
         WF = 0.5;
-      else if (strcmp(filter_name, "trent")== 0) 
+      else if (strcmp(filter_name, "tent")== 0) 
         WF = 1.0;
       else if (strcmp(filter_name, "bell")== 0) 
         WF = 1.5;
@@ -87,7 +87,7 @@ process(int factor, char* filter_name,char* ims_name, char* imd_name){
         float h = 0.0;
         if (strcmp(filter_name, "box")== 0) 
           h = box((float)k-new_j);
-        else if (strcmp(filter_name, "trent")== 0) 
+        else if (strcmp(filter_name, "tent")== 0) 
           h = tent((float)k-new_j);
         else if (strcmp(filter_name, "bell")== 0) 
           h = bell((float)k-new_j);
@@ -121,7 +121,7 @@ process(int factor, char* filter_name,char* ims_name, char* imd_name){
       float WF = 0;
       if (strcmp(filter_name, "box")== 0) 
         WF = 0.5;
-      else if (strcmp(filter_name, "trent")== 0) 
+      else if (strcmp(filter_name, "tent")== 0) 
         WF = 1.0;
       else if (strcmp(filter_name, "bell")== 0) 
         WF = 1.5;
@@ -141,7 +141,7 @@ process(int factor, char* filter_name,char* ims_name, char* imd_name){
         float h = 0.0;
         if (strcmp(filter_name, "box")== 0) 
           h = box((float)k-new_i);
-        else if (strcmp(filter_name, "trent")== 0) 
+        else if (strcmp(filter_name, "tent")== 0) 
           h = tent((float)k-new_i);
         else if (strcmp(filter_name, "bell")== 0) 
           h = bell((float)k-new_i);
