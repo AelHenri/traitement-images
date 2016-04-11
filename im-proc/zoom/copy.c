@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <bcl.h>
+#include <math.h>
+
 
 void  
 process(int factor, char* ims_name,char* imd_name){
@@ -18,21 +20,18 @@ process(int factor, char* ims_name,char* imd_name){
     int news_rows = factor*rows;
 
     pnm imd = pnm_new(news_cols, news_rows, PnmRawPpm);
-
-    unsigned short *ps = pnm_get_image(ims);
-    unsigned short *pd = pnm_get_image(imd);
       
-    for(int i=0;i<news_rows;i++){
-		
-      for(int j=0;j<news_cols;j++){
-		  			
-		for(int c=0; c<3; c++){
-
-		}		
+    for(int i=0;i<news_rows;i++){	
+      for(int j=0;j<news_cols;j++){  
+		for(int k=0; k<3; k++){
+			pnm_set_component(imd,i,j,k,pnm_get_component(ims,round(i/factor),round(j/factor),k));
 		}
       }
     }
-	
+    
+	pnm_save(imd, PnmRawPpm, imd_name);
+	pnm_free(ims);
+	pnm_free(imd);
 }
 
 void 
