@@ -13,35 +13,95 @@
 
   pnm ims = pnm_load(ims_name);
 
-  int cols_s = pnm_get_width(ims);
-  int rows_s = pnm_get_height(ims);
+  int cols = pnm_get_width(ims);
+  int rows = pnm_get_height(ims);
 
-  int cols_d = factor*cols_s;
-  int rows_d = factor*rows_s;
+  int new_cols = factor*cols;
+  int new_rows = factor*rows;
 
-  pnm imd = pnm_new(cols_d, rows_d, PnmRawPpm);
+  pnm imd = pnm_new(new_cols, new_rows, PnmRawPpm);
 
   unsigned short *ps = pnm_get_image(ims);
   unsigned short *pd = pnm_get_image(imd);
 
   fftw_complex *fftw_for;
+  fftw_complex *fftw_center = (fftw_complex*) fftw_malloc(new_rows*new_cols*sizeof(fftw_complex));;
 
-  fftw_for = forward(rows_s, cols_s, ps);
+  fftw_for = forward(rows, cols, ps);
 
-  for (int i = 0; i < rows_d; ++i)
+  int mn_rows = new_rows/2;
+  int mn_cols = new_cols/2;
+  
+  int m_rows = rows/2;
+  int m_cols = cols/2;
+  
+  printf("plop1\n");
+  
+  for (int i = 0; i < new_rows; ++i)
   {
-    for (int j = 0; j < cols_d; ++j)
+    for (int j = 0; j < new_cols; ++j)
     {
-      for (int k = 0; k < 3; ++k)
-      {
-        *pd = 0;
-        pd++;        
-      }
+	  if((i>=(mn_rows-m_rows))&&(i<=(mn_rows+m_rows))&&(j>=(mn_cols-m_cols))&&(j<=(mn_cols+m_cols))){
+		  *fftw_center = *fftw_for;
+		  fftw_center++;     
+		  fftw_for++;       
+	  }
+	  else{
+		  *fftw_center = 0;
+		  fftw_center++;     	 
+	  }
     }
   }
+  fftw_center -= new_rows*new_cols;
+  
 
-  pd-=cols_d*rows_d*3;
+  pnm step = pnm_new(new_cols, new_rows, PnmRawPpm);
+  unsigned short *st = pnm_get_image(step);
+  
+   for (int i = 0; i < new_rows; ++i)
+   {
+    for (int j = 0; j < new_cols; ++j)
+    {
+	  for (int k = 0; k < 3 ; ++k){
+		*st = creal(*fftw_center);
+	    st++;
+	  }
+	  fftw_center++;
+    }
+  } 
+  fftw_center -= new_rows*new_cols;
+  st -= new_rows*new_cols*3;
 
+  pnm_save(step, PnmRawPpm, "step.ppm");
+
+  
+ 
+
+  fftw_center -= new_rows*new_cols;
+  unsigned short *out = backward(new_rows, new_cols, fftw_center,factor);
+  
+  
+    for(int i=0;i<new_rows;i++){
+      for(int j=0;j<new_cols;j++){
+
+        for(int c=0; c<3; c++){
+          *pd = *out;
+          pd++;
+          out++;
+        }
+        
+      }
+    }
+    printf("plop3.5\n");
+
+    pd -= 3*new_cols*new_rows;
+    out -= 3*new_cols*new_rows;
+  
+    printf("plop4\n");
+    
+    pnm_save(imd, PnmRawPpm, imd_name);
+
+    
 }
 
 void 
