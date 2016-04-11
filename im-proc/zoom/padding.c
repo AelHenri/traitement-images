@@ -9,10 +9,39 @@
 #include "fft.h"
 
 
-void  
-process(int factor, char* ims_name,char* imd_name){
-	
-	
+ void process(int factor, char* ims_name,char* imd_name){
+
+  pnm ims = pnm_load(ims_name);
+
+  int cols_s = pnm_get_width(ims);
+  int rows_s = pnm_get_height(ims);
+
+  int cols_d = factor*cols_s;
+  int rows_d = factor*rows_s;
+
+  pnm imd = pnm_new(cols_d, rows_d, PnmRawPpm);
+
+  unsigned short *ps = pnm_get_image(ims);
+  unsigned short *pd = pnm_get_image(imd);
+
+  fftw_complex *fftw_for;
+
+  fftw_for = forward(rows_s, cols_s, ps);
+
+  for (int i = 0; i < rows_d; ++i)
+  {
+    for (int j = 0; j < cols_d; ++j)
+    {
+      for (int k = 0; k < 3; ++k)
+      {
+        *pd = 0;
+        pd++;        
+      }
+    }
+  }
+
+  pd-=cols_d*rows_d*3;
+
 }
 
 void 
@@ -28,7 +57,7 @@ main(int argc, char *argv[]){
   int factor = atoi(argv[1]);
   char *ims_name = argv[2];
   char *imd_name = argv[3];
-    
+
   process(factor,ims_name,imd_name);
   return EXIT_SUCCESS;
 }
